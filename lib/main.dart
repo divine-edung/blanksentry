@@ -13,9 +13,6 @@ Future<void> main() async {
     options.tracesSampleRate = 1.0;
     options.profilesSampleRate = 1.0;
   }, appRunner: () => runApp(SentryWidget(child: const MyApp())));
-
-  // This sample exception should now be captured
-  await Sentry.captureException(StateError('This is a sample exception.'));
 }
 
 class MyApp extends StatelessWidget {
@@ -44,11 +41,20 @@ class HomePage extends StatelessWidget {
       body: Center(
         child: ElevatedButton(
           onPressed: () {
-            throw StateError('This is test exception');
+            throwError();
           },
           child: const Text('Verify Sentry Setup'),
         ),
       ),
     );
+  }
+
+  Future<void> throwError() async {
+    try {
+      throw StateError('This is test exception');
+    } catch (e, s) {
+      await Sentry.captureException(e, stackTrace: s);
+      print("Sentry completed its captureException call");
+    }
   }
 }
